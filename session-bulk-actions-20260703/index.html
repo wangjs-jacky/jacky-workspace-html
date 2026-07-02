@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Happy 左侧历史会话批量操作交互稿</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07060d;
+      --panel: #14101f;
+      --panel-2: #1b1428;
+      --panel-3: #211733;
+      --text: #f0edf7;
+      --muted: #9c93ad;
+      --line: rgba(255,255,255,.07);
+      --accent: #8d6dff;
+      --accent-2: #43d7ff;
+      --danger: #ff5757;
+      --archive: #ffb454;
+      --green: #42f59e;
+      --shadow: 0 28px 90px rgba(0,0,0,.55);
+      --radius: 28px;
+      font-family: "IBM Plex Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(141,109,255,.18), transparent 28%),
+        radial-gradient(circle at 84% 68%, rgba(67,215,255,.10), transparent 28%),
+        linear-gradient(135deg, #06050b, #110c1b 58%, #050408);
+      color: var(--text);
+    }
+
+    .shell {
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 26px;
+      align-items: start;
+    }
+
+    .intro {
+      position: sticky;
+      top: 24px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(16,12,25,.72);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 30px;
+      line-height: 1.12;
+      letter-spacing: 0;
+    }
+
+    .intro p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .states {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0 22px;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+    }
+
+    .state-btn {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,.035);
+      color: var(--muted);
+      text-align: left;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .state-btn.active {
+      color: var(--text);
+      border-color: rgba(141,109,255,.55);
+      background: rgba(141,109,255,.18);
+      box-shadow: 0 0 0 1px rgba(141,109,255,.18) inset;
+    }
+
+    .notes {
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .note {
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .phone-wrap {
+      display: grid;
+      justify-items: center;
+      gap: 18px;
+    }
+
+    .phone {
+      width: min(430px, 100%);
+      min-height: 860px;
+      border-radius: 44px;
+      padding: 16px 14px;
+      background: #050409;
+      box-shadow: var(--shadow), 0 0 0 1px rgba(255,255,255,.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .screen {
+      min-height: 828px;
+      border-radius: 34px;
+      overflow: hidden;
+      position: relative;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.025), transparent 18%),
+        #0f0b18;
+    }
+
+    .statusbar {
+      height: 58px;
+      padding: 18px 20px 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      color: #fff;
+      font-weight: 700;
+      font-size: 17px;
+      letter-spacing: .2px;
+    }
+
+    .status-icons {
+      display: flex;
+      gap: 8px;
+      color: rgba(255,255,255,.84);
+      font-size: 13px;
+    }
+
+    .drawer {
+      height: 770px;
+      padding: 24px 16px 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .top-card,
+    .nav-row {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,.035);
+      border-radius: 22px;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+    }
+
+    .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #0069bd;
+      color: #ffcc5d;
+      font-size: 20px;
+      letter-spacing: -2px;
+      flex: none;
+    }
+
+    .top-card strong,
+    .nav-row strong {
+      flex: 1;
+      font-size: 20px;
+      font-weight: 760;
+      letter-spacing: 0;
+    }
+
+    .icon {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      color: rgba(255,255,255,.78);
+      font-size: 24px;
+      flex: none;
+    }
+
+    .nav-row {
+      min-height: 58px;
+      border-radius: 18px;
+      padding: 12px 18px;
+    }
+
+    .nav-row strong {
+      font-size: 18px;
+    }
+
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 18px 14px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .account .small-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: conic-gradient(#79c8d8 0 50%, #e51c2c 0 100%);
+      flex: none;
+    }
+
+    .account span {
+      flex: 1;
+    }
+
+    .session-card {
+      margin-top: 8px;
+      border-radius: 24px;
+      overflow: hidden;
+      background: rgba(27,20,40,.9);
+      border: 1px solid rgba(255,255,255,.035);
+    }
+
+    .row {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 22px;
+      border-bottom: 1px solid rgba(255,255,255,.045);
+      color: rgba(255,255,255,.88);
+      font-size: 18px;
+      position: relative;
+      transition: .18s ease;
+    }
+
+    .row:last-child { border-bottom: 0; }
+    .row.selected {
+      background: rgba(141,109,255,.22);
+    }
+    .row.pending {
+      background: rgba(255,180,84,.13);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #8d83a2;
+      flex: none;
+    }
+
+    .dot.blue { background: #2f9cff; }
+    .dot.purple { background: var(--accent); }
+
+    .checkbox {
+      width: 22px;
+      height: 22px;
+      border-radius: 7px;
+      border: 2px solid rgba(255,255,255,.35);
+      display: grid;
+      place-items: center;
+      color: #0d0716;
+      flex: none;
+      transition: .18s ease;
+    }
+
+    .row.selected .checkbox {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    .row.selected .checkbox::after {
+      content: "✓";
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      transform: translateY(-1px);
+    }
+
+    .row-title {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .more {
+      opacity: .0;
+      width: 30px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 22px;
+    }
+
+    .show-more .more { opacity: 1; }
+
+    .selection-bar {
+      position: absolute;
+      z-index: 5;
+      left: 16px;
+      right: 16px;
+      top: 74px;
+      min-height: 54px;
+      border-radius: 18px;
+      background: rgba(23,17,34,.92);
+      border: 1px solid rgba(141,109,255,.28);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 14px;
+      box-shadow: 0 16px 42px rgba(0,0,0,.35);
+      backdrop-filter: blur(16px);
+    }
+
+    .selection-bar strong {
+      flex: 1;
+      font-size: 16px;
+    }
+
+    .chip {
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,.045);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .bulk-bar {
+      position: absolute;
+      z-index: 6;
+      left: 18px;
+      right: 18px;
+      bottom: 24px;
+      min-height: 74px;
+      border-radius: 24px;
+      background: rgba(23,17,34,.96);
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 20px 60px rgba(0,0,0,.52);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      overflow: hidden;
+    }
+
+    .bulk-action {
+      border: 0;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    .bulk-action:first-child {
+      border-right: 1px solid rgba(255,255,255,.07);
+      color: var(--archive);
+    }
+
+    .bulk-action:last-child { color: var(--danger); }
+
+    .popover {
+      position: absolute;
+      z-index: 9;
+      right: 18px;
+      top: 480px;
+      width: 282px;
+      border-radius: 24px;
+      overflow: hidden;
+      background: rgba(24,18,36,.98);
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: 0 24px 80px rgba(0,0,0,.62);
+    }
+
+    .menu-row {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 18px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      font-size: 17px;
+    }
+
+    .menu-row:last-child { border-bottom: 0; }
+    .menu-row.danger { color: var(--danger); }
+
+    .confirm {
+      position: absolute;
+      z-index: 10;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(0,0,0,.48);
+      backdrop-filter: blur(8px);
+    }
+
+    .dialog {
+      width: 100%;
+      border-radius: 26px;
+      background: rgba(25,19,38,.98);
+      border: 1px solid rgba(255,255,255,.09);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .dialog-body {
+      padding: 24px;
+      text-align: center;
+    }
+
+    .dialog-body h2 {
+      margin: 0 0 12px;
+      font-size: 21px;
+    }
+
+    .dialog-body p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .dialog-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-top: 1px solid rgba(255,255,255,.07);
+    }
+
+    .dialog-actions button {
+      height: 58px;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .dialog-actions button + button {
+      border-left: 1px solid rgba(255,255,255,.07);
+      color: var(--danger);
+      font-weight: 720;
+    }
+
+    .caption {
+      max-width: 430px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .export {
+      width: min(430px, 100%);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      border-radius: 18px;
+      padding: 14px 16px;
+      cursor: pointer;
+      color: var(--text);
+      text-align: center;
+    }
+
+    @media (max-width: 880px) {
+      .shell {
+        grid-template-columns: 1fr;
+        padding: 16px 12px 32px;
+      }
+      .intro {
+        position: static;
+      }
+      .phone {
+        min-height: 820px;
+      }
+      .screen {
+        min-height: 788px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="intro">
+      <h1>左侧历史会话批量操作交互稿</h1>
+      <p>目标是把“长按历史会话”从单个菜单改成更符合移动端习惯的多选入口，并补齐批量归档与硬删除。</p>
+      <div class="states" id="states">
+        <button class="state-btn active" data-state="default">默认列表：短按打开会话</button>
+        <button class="state-btn" data-state="selecting">长按进入多选：显示 checkbox 与操作条</button>
+        <button class="state-btn" data-state="confirm">点击删除：二次确认硬删除</button>
+        <button class="state-btn" data-state="more">可选增强：行右侧更多菜单</button>
+      </div>
+      <div class="notes">
+        <div class="note">推荐 MVP：长按进入多选，只对历史/非活跃会话生效；批量归档无需确认，批量删除必须确认。</div>
+        <div class="note">“删除”语义：从数据库永久删除 session 和消息，不可恢复；“归档”语义：隐藏但保留恢复可能。</div>
+        <div class="note">如果需要保留单个详情/重命名，建议用行右侧 “…” 作为更多菜单，不再占用长按。</div>
+      </div>
+    </section>
+
+    <section class="phone-wrap">
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar">
+            <span>00:14</span>
+            <div class="status-icons"><span>5G</span><span>▰▰▰</span><span>▱</span></div>
+          </div>
+          <div class="drawer" id="drawer">
+            <div class="top-card">
+              <div class="avatar">•••••</div>
+              <strong>设置</strong>
+              <span class="icon">⚙</span>
+            </div>
+            <div class="nav-row"><span class="icon">☵</span><strong>收件箱</strong></div>
+            <div class="nav-row"><span class="icon">□</span><strong>新建会话</strong></div>
+            <div class="nav-row"><span class="icon">⌕</span><strong>搜索历史会话</strong></div>
+
+            <div class="account">
+              <div class="small-logo"></div>
+              <span>jiashengwang</span>
+              <strong>＋</strong>
+            </div>
+
+            <div class="session-card" id="sessionCard">
+              <div class="row" data-index="0"><span class="dot blue"></span><span class="row-title">新对话</span><span class="more">⋯</span></div>
+              <div class="row selected" data-index="1"><span class="dot"></span><span class="row-title">新对话</span><span class="more">⋯</span></div>
+              <div class="row pending selected" data-index="2"><span class="dot"></span><span class="row-title">新对话</span><span class="more">⋯</span></div>
+              <div class="row" data-index="3"><span class="dot"></span><span class="row-title">新对话</span><span class="more">⋯</span></div>
+              <div class="row selected" data-index="4"><span class="dot"></span><span class="row-title">专注类 App 多选操作设计</span><span class="more">⋯</span></div>
+              <div class="row" data-index="5"><span class="dot purple"></span><span class="row-title">排查 Happy Preview OTA 拉取异常</span><span class="more">⋯</span></div>
+              <div class="row" data-index="6"><span class="dot purple"></span><span class="row-title">修复输入框发送后未清空</span><span class="more">⋯</span></div>
+            </div>
+
+            <div class="selection-bar" id="selectionBar">
+              <strong>已选择 3 个</strong>
+              <span class="chip">取消</span>
+            </div>
+
+            <div class="bulk-bar" id="bulkBar">
+              <button class="bulk-action">▣ 归档</button>
+              <button class="bulk-action">⌫ 删除</button>
+            </div>
+
+            <div class="popover" id="popover">
+              <div class="menu-row">ⓘ 详情</div>
+              <div class="menu-row">✎ 重命名</div>
+              <div class="menu-row">☷ 复制元数据</div>
+              <div class="menu-row">▣ 归档</div>
+              <div class="menu-row danger">⌫ 删除</div>
+            </div>
+
+            <div class="confirm" id="confirm">
+              <div class="dialog">
+                <div class="dialog-body">
+                  <h2>删除 3 个会话？</h2>
+                  <p>这些会话将从数据库中永久删除，无法恢复。归档请使用“归档”操作。</p>
+                </div>
+                <div class="dialog-actions">
+                  <button>取消</button>
+                  <button>永久删除</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="caption" id="caption">默认态保持轻量：短按进入会话，长按不再弹单个菜单，而是进入多选。</p>
+      <button class="export" id="copy">复制交互决策摘要</button>
+    </section>
+  </main>
+
+  <script>
+    const stateButtons = [...document.querySelectorAll('.state-btn')];
+    const rows = [...document.querySelectorAll('.row')];
+    const selectionBar = document.getElementById('selectionBar');
+    const bulkBar = document.getElementById('bulkBar');
+    const popover = document.getElementById('popover');
+    const confirmLayer = document.getElementById('confirm');
+    const sessionCard = document.getElementById('sessionCard');
+    const caption = document.getElementById('caption');
+    const copy = document.getElementById('copy');
+
+    const captions = {
+      default: '默认态保持轻量：短按进入会话，长按不再弹单个菜单，而是进入多选。',
+      selecting: '多选态把左侧圆点替换为 checkbox，底部固定批量操作条，支持批量归档和删除。',
+      confirm: '删除是硬删除，必须二次确认；归档是软操作，不阻塞用户。',
+      more: '如果要保留详情、重命名、复制元数据，建议用行右侧 “…” 打开单个更多菜单。'
+    };
+
+    function setState(state) {
+      stateButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.state === state));
+      const selecting = state === 'selecting' || state === 'confirm';
+      selectionBar.style.display = selecting ? 'flex' : 'none';
+      bulkBar.style.display = selecting ? 'grid' : 'none';
+      confirmLayer.style.display = state === 'confirm' ? 'grid' : 'none';
+      popover.style.display = state === 'more' ? 'block' : 'none';
+      sessionCard.classList.toggle('show-more', state === 'more');
+      caption.textContent = captions[state];
+
+      rows.forEach((row, index) => {
+        const dot = row.querySelector('.dot, .checkbox');
+        const shouldSelect = selecting && [1, 2, 4].includes(index);
+        row.classList.toggle('selected', shouldSelect || (!selecting && [1, 2, 4].includes(index) && state !== 'default'));
+        if (selecting) {
+          dot.className = 'checkbox';
+        } else {
+          dot.className = index === 0 ? 'dot blue' : index > 4 ? 'dot purple' : 'dot';
+          row.classList.remove('selected');
+          if (state === 'more' && index === 2) row.classList.add('pending');
+          if (state === 'default') row.classList.remove('pending');
+        }
+      });
+    }
+
+    stateButtons.forEach(btn => btn.addEventListener('click', () => setState(btn.dataset.state)));
+    copy.addEventListener('click', async () => {
+      const text = [
+        '# 左侧历史会话批量操作 MVP',
+        '',
+        '- 长按历史会话进入多选模式，并选中当前行。',
+        '- 多选模式下短按其他行切换选中状态。',
+        '- 底部批量操作条提供归档与删除。',
+        '- 删除是数据库硬删除，必须二次确认。',
+        '- 单个详情/重命名/复制元数据建议迁移到行右侧更多菜单。'
+      ].join('\\n');
+      await navigator.clipboard.writeText(text).catch(() => {});
+      copy.textContent = '已复制';
+      setTimeout(() => copy.textContent = '复制交互决策摘要', 1200);
+    });
+
+    setState('default');
+  </script>
+</body>
+</html>
